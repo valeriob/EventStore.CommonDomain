@@ -1,10 +1,10 @@
-namespace EventStore.CommonDomain.Core
-{
-	using System;
-	using System.Collections;
-	using System.Collections.Generic;
-	using System.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
+namespace CommonDomain.Core
+{
 	/// <summary>
 	/// The conflict detector is used to determine if the events to be committed represent
 	/// a true business conflict as compared to events that have already been committed, thus

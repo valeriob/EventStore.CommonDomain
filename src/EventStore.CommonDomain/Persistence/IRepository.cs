@@ -1,8 +1,8 @@
-namespace EventStore.CommonDomain.Persistence
-{
-	using System;
-	using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
+namespace CommonDomain.Persistence
+{
 	public interface IRepository
 	{
 	    TAggregate GetById<TAggregate>(string id) where TAggregate : class, IAggregate;

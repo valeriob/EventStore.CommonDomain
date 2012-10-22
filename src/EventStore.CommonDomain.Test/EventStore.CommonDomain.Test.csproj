@@ -62,8 +62,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Learning_ES.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="repository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EventStore.CommonDomain\EventStore.CommonDomain.csproj">

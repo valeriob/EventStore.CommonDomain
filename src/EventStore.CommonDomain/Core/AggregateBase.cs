@@ -1,4 +1,4 @@
-namespace EventStore.CommonDomain.Core
+namespace CommonDomain.Core
 {
     using System;
     using System.Collections;

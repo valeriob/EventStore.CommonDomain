@@ -38,9 +38,11 @@ namespace EventStore.CommonDomain.Dispatcher
                 _checkPoint.Flush();
             }
 
+            _eventStoreConnection.ReadEventStreamForward("@all", 0, int.MaxValue);
             _eventStoreConnection.SubscribeToAllStreamsAsync(ev => 
             { 
                 //TODO publish
+                Console.WriteLine("ev");
                 _checkPoint.Write(ev.EventNumber);
 
             }, () => 

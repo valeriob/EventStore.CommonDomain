@@ -1,9 +1,9 @@
-namespace EventStore.CommonDomain.Core
-{
-	using System;
-	using System.Collections;
-	using System.Collections.Generic;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
+namespace CommonDomain.Core
+{
 	public class SagaBase<TMessage> : ISaga, IEquatable<ISaga>
 		where TMessage : class
 	{
@@ -11,7 +11,7 @@ namespace EventStore.CommonDomain.Core
 		private readonly ICollection<TMessage> uncommitted = new LinkedList<TMessage>();
 		private readonly ICollection<TMessage> undispatched = new LinkedList<TMessage>();
 
-		public Guid Id { get; protected set; }
+		public string Id { get; protected set; }
 		public int Version { get; private set; }
 
 		protected void Register<TRegisteredMessage>(Action<TRegisteredMessage> handler)

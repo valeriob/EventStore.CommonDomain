@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using CommonDomain.Persistence;
+using CommonDomain;
 
 namespace EventStore.CommonDomain.Persistence
 {
@@ -209,7 +211,7 @@ namespace EventStore.CommonDomain.Persistence
                 .DefaultIfEmpty().Max();
 
             var events = stream.UncommittedEvents.Select(e => _serializer.Serialize(e));
-
+            
             eventStoreConnection.AppendToStream(stream.StreamId + "", expectedVersion, events);
         }
 	}

@@ -1,8 +1,8 @@
-namespace EventStore.CommonDomain.Persistence
-{
-	using System;
-	using System.Runtime.Serialization;
+using System;
+using System.Runtime.Serialization;
 
+namespace CommonDomain.Persistence
+{
 	/// <summary>
 	/// Represents a command that could not be executed because it conflicted with the command of another user or actor.
 	/// </summary>

@@ -1,7 +1,7 @@
-namespace EventStore.CommonDomain.Core
-{
-	using System.Globalization;
+using System.Globalization;
 
+namespace CommonDomain.Core
+{
 	internal static class ExtensionMethods
 	{
 		public static string FormatWith(this string format, params object[] args)

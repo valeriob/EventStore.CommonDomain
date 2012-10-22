@@ -1,8 +1,8 @@
-namespace EventStore.CommonDomain.Persistence
-{
-	using System;
-	using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
+namespace CommonDomain.Persistence
+{
 	public interface ISagaRepository
 	{
 		TSaga GetById<TSaga>(string sagaId) where TSaga : class, ISaga, new();

@@ -1,11 +1,10 @@
-namespace EventStore.CommonDomain
-{
-	using System;
-	using System.Collections;
 
+using System.Collections;
+namespace CommonDomain
+{
 	public interface ISaga
 	{
-		Guid Id { get; }
+		string Id { get; }
 		int Version { get; }
 
 		void Transition(object message);

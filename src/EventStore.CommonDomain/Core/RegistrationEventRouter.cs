@@ -1,8 +1,8 @@
-namespace EventStore.CommonDomain.Core
-{
-	using System;
-	using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
+namespace CommonDomain.Core
+{
 	public class RegistrationEventRouter : IRouteEvents
 	{
 		private readonly IDictionary<Type, Action<object>> handlers = new Dictionary<Type, Action<object>>();

@@ -1,15 +1,17 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
-using EventStore.CommonDomain.Core;
-using EventStore.CommonDomain.Persistence;
+using CommonDomain.Persistence;
 using Newtonsoft.Json;
 using System.Text;
+using CommonDomain.Core;
+using EventStore.CommonDomain.Persistence;
+using CommonDomain;
 
 namespace EventStore.CommonDomain.Test
 {
     [TestClass]
-    public class UnitTest1
+    public class repository
     {
         [TestMethod]
         public void when_creating_a_repository()
@@ -34,7 +36,7 @@ namespace EventStore.CommonDomain.Test
         public void when_saving_update_aggregate()
         {
             var connection = new EventStore.ClientAPI.EventStoreConnection(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113));
-
+       
             var repository = new EventStore.CommonDomain.Persistence.EventStoreRepository(connection, new factory(), new ConflictDetector(), new My_Serializer());
 
             var id = Guid.NewGuid() + "";
@@ -49,9 +51,8 @@ namespace EventStore.CommonDomain.Test
             repository = new EventStore.CommonDomain.Persistence.EventStoreRepository(connection, new factory(), new ConflictDetector(), new My_Serializer());
 
             ar = repository.GetById<MyAggregate>(id);
-
-
         }
+
     }
 
     public interface IEvent

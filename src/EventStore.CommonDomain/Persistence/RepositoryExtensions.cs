@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EventStore.CommonDomain.Persistence
+namespace CommonDomain.Persistence
 {
     public static class RepositoryExtensions
     {

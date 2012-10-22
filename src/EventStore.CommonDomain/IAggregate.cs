@@ -1,8 +1,8 @@
-namespace EventStore.CommonDomain
-{
-	using System;
-	using System.Collections;
+using System;
+using System.Collections;
 
+namespace CommonDomain
+{
 	public interface IAggregate
 	{
 		string Id { get; }
