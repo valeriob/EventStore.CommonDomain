@@ -9,21 +9,14 @@ using CommonDomain;
 
 namespace EventStore.CommonDomain.Persistence
 {
-    public interface ISerializer
-    {
-        EventStore.ClientAPI.IEvent Serialize(EventMessage source);
-        EventMessage Deserialize(EventStore.ClientAPI.RecordedEvent source);
-    }
-
-
-	public class EventStoreRepository :  IDisposable
+	public class EventStoreRepository :  IRepository, IDisposable
 	{
 		private const string AggregateTypeHeader = "AggregateType";
-        private readonly IDictionary<string, Snapshot> snapshots = new Dictionary<string, Snapshot>();
-        private readonly IDictionary<string, Stream> streams = new Dictionary<string, Stream>();
-        private readonly EventStoreConnection eventStoreConnection;
-		private readonly IConstructAggregates factory;
-		private readonly IDetectConflicts conflictDetector;
+        private readonly IDictionary<string, Snapshot> _snapshots = new Dictionary<string, Snapshot>();
+        private readonly IDictionary<string, Stream> _streams = new Dictionary<string, Stream>();
+        private readonly EventStoreConnection _eventStoreConnection;
+		private readonly IConstructAggregates _factory;
+		private readonly IDetectConflicts _conflictDetector;
 
         private readonly ISerializer _serializer;
 
@@ -32,10 +25,10 @@ namespace EventStore.CommonDomain.Persistence
 			IConstructAggregates factory,
 			IDetectConflicts conflictDetector, ISerializer serializer)
 		{
-			this.eventStoreConnection = eventStoreConnection;
-			this.factory = factory;
-			this.conflictDetector = conflictDetector;
-            this._serializer = serializer;
+			_eventStoreConnection = eventStoreConnection;
+			_factory = factory;
+			_conflictDetector = conflictDetector;
+            _serializer = serializer;
 		}
 
 		public void Dispose()
@@ -48,13 +41,13 @@ namespace EventStore.CommonDomain.Persistence
 			if (!disposing)
 				return;
 
-			lock (this.streams)
+			lock (_streams)
 			{
                 //foreach (var stream in this.streams)
                 //    stream.Value.Dispose();
 
-				this.snapshots.Clear();
-				this.streams.Clear();
+				_snapshots.Clear();
+				_streams.Clear();
 			}
 		}
 
@@ -65,9 +58,9 @@ namespace EventStore.CommonDomain.Persistence
 
         public virtual TAggregate GetById<TAggregate>(string id, int versionToLoad) where TAggregate : class, IAggregate
 		{
-			var snapshot = this.GetSnapshot(id, versionToLoad);
-			var stream = this.OpenStream(id, versionToLoad, snapshot);
-			var aggregate = this.GetAggregate<TAggregate>(snapshot, stream);
+			var snapshot = GetSnapshot(id, versionToLoad);
+			var stream = OpenStream(id, versionToLoad, snapshot);
+			var aggregate = GetAggregate<TAggregate>(snapshot, stream);
 
 			ApplyEventsToAggregate(versionToLoad, stream, aggregate);
 
@@ -82,20 +75,20 @@ namespace EventStore.CommonDomain.Persistence
         private IAggregate GetAggregate<TAggregate>(Snapshot snapshot, Stream stream)
 		{
 			var memento = snapshot == null ? null : snapshot.Payload as IMemento;
-			return this.factory.Build(typeof(TAggregate), stream.StreamId, memento);
+			return _factory.Build(typeof(TAggregate), stream.StreamId, memento);
 		}
 		private Snapshot GetSnapshot(string id, int version)
 		{
 			Snapshot snapshot;
-            if (!this.snapshots.TryGetValue(id, out snapshot))
+            if (!_snapshots.TryGetValue(id, out snapshot))
             {
                 try
                 {
-                    var stream = this.eventStoreConnection.ReadEventStreamBackward(id, int.MaxValue, 1);
+                    var stream = _eventStoreConnection.ReadEventStreamBackward(id, int.MaxValue, 1);
                     // TODO : Optimization required
                     var last = stream.Events.LastOrDefault();
 
-                    this.snapshots[id] = snapshot = new Snapshot(id, last.EventNumber, _serializer.Deserialize(last));
+                    _snapshots[id] = snapshot = new Snapshot(id, last.EventNumber, _serializer.Deserialize(last));
                 }
                 catch (Exception) { }
             }
@@ -105,7 +98,7 @@ namespace EventStore.CommonDomain.Persistence
         private Stream OpenStream(string id, int version, Snapshot snapshot)
 		{
             Stream stream;
-			if (this.streams.TryGetValue(id, out stream))
+			if (_streams.TryGetValue(id, out stream))
 				return stream;
 
             var minRevision = 0;
@@ -113,16 +106,16 @@ namespace EventStore.CommonDomain.Persistence
                 minRevision = snapshot.StreamRevision;
             try
             {
-                eventStoreConnection.CreateStream(id, new byte [] { });
+                _eventStoreConnection.CreateStream(id, new byte [] { });
             }
             catch (Exception) { } // TODO catch stream exists or verify it with a to be command
 
-            var esStream = eventStoreConnection.ReadEventStreamForward(id, minRevision, version);
+            var esStream = _eventStoreConnection.ReadEventStreamForward(id, minRevision, version);
             stream = new Stream(esStream.Stream, esStream.Events.Select(e => _serializer.Deserialize(e))
                 .Where(e => e!=null)
                 .ToArray());
 
-            return streams[id] = stream;
+            return _streams[id] = stream;
 		}
 
 		public virtual void Save(IAggregate aggregate, Guid commitId, Action<IDictionary<string, object>> updateHeaders)
@@ -130,7 +123,7 @@ namespace EventStore.CommonDomain.Persistence
 			var headers = PrepareHeaders(aggregate, updateHeaders);
 			while (true)
 			{
-				var stream = this.PrepareStream(aggregate, headers);
+				var stream = PrepareStream(aggregate, headers);
 				var commitEventCount = stream.CommittedEvents.Length;
 
 				try
@@ -168,12 +161,12 @@ namespace EventStore.CommonDomain.Persistence
         private Stream PrepareStream(IAggregate aggregate, Dictionary<string, object> headers)
 		{
             Stream stream;
-            if (!this.streams.TryGetValue(aggregate.Id, out stream))
+            if (!_streams.TryGetValue(aggregate.Id, out stream))
             {
                 Debugger.Break();
 
-                this.eventStoreConnection.CreateStream(aggregate.Id, new byte[] {});
-                this.streams[aggregate.Id] = stream = new Stream(aggregate.Id, new EventMessage[0]);
+                _eventStoreConnection.CreateStream(aggregate.Id, new byte[] {});
+                _streams[aggregate.Id] = stream = new Stream(aggregate.Id, new EventMessage[0]);
             }
 
 			foreach (var item in headers)
@@ -201,7 +194,7 @@ namespace EventStore.CommonDomain.Persistence
 		{
 			var committed = stream.CommittedEvents.Skip(skip).Select(x => x.Body);
 			var uncommitted = stream.UncommittedEvents.Select(x => x.Body);
-			return this.conflictDetector.ConflictsWith(uncommitted, committed);
+			return _conflictDetector.ConflictsWith(uncommitted, committed);
 		}
 
 
@@ -212,58 +205,9 @@ namespace EventStore.CommonDomain.Persistence
 
             var events = stream.UncommittedEvents.Select(e => _serializer.Serialize(e));
             
-            eventStoreConnection.AppendToStream(stream.StreamId + "", expectedVersion, events);
+            _eventStoreConnection.AppendToStream(stream.StreamId + "", expectedVersion, events);
         }
 	}
 
-  
-    public class Snapshot
-    {
-        public object Payload { get; protected set; }
-        public virtual string StreamId { get; protected set; }
-        public virtual int StreamRevision { get; protected set; }
-
-        public Snapshot(string streamId, int streamRevision, object payload)
-        {
-            StreamId = streamId;
-            StreamRevision = streamRevision;
-            Payload = payload;
-        }
-
-
-    }
-
-    public class Stream
-    {
-        public string StreamId { get; protected set;  }
-        public IDictionary<string, object> UncommittedHeaders { get; protected set; }
-        public EventMessage[] CommittedEvents { get; protected set; }
-        public List<EventMessage> UncommittedEvents { get; protected set; }
-
-        public Stream(string streamId, EventMessage[] committedEvents)
-        {
-            UncommittedHeaders = new Dictionary<string, object>();
-            UncommittedEvents = new List<EventMessage>();
-            StreamId = streamId;
-            CommittedEvents = committedEvents;
-        }
-
-        public void Add(EventMessage uncommittedEvent)
-        {
-            UncommittedEvents.Add(uncommittedEvent);
-        }
-
-        public void ClearChanges() 
-        { 
-            UncommittedEvents.Clear(); 
-        }
-    }
-
-
-
-    public class EventMessage 
-    {
-        public object Body { get; set; }
-        public int? EventNumber { get; set; }
-    }
+ 
 }

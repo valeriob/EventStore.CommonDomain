@@ -62,12 +62,16 @@
     <Compile Include="Core\RegistrationEventRouter.cs" />
     <Compile Include="Core\SagaBase.cs" />
     <Compile Include="Dispatcher\Event_Publisher.cs" />
+    <Compile Include="EventStore_Extensions.cs" />
     <Compile Include="IAggregate.cs" />
     <Compile Include="IDetectConflicts.cs" />
     <Compile Include="IMemento.cs" />
     <Compile Include="IRouteEvents.cs" />
     <Compile Include="ISaga.cs" />
     <Compile Include="Persistence.EventStore\EventStoreRepository.cs" />
+    <Compile Include="Persistence.EventStore\ISerializer.cs" />
+    <Compile Include="Persistence.EventStore\SagaEventStoreRepository.cs" />
+    <Compile Include="Persistence.EventStore\Support_Entities.cs" />
     <Compile Include="Persistence\ConflictingCommandException.cs" />
     <Compile Include="Persistence\IConstructAggregates.cs" />
     <Compile Include="Persistence\IRepository.cs" />
