@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
+using System.Diagnostics;
 
 namespace EventStore.CommonDomain.Test
 {
@@ -60,6 +61,7 @@ namespace EventStore.CommonDomain.Test
         //
         #endregion
 
+
         [TestMethod]
         public void read_all_events()
         {
@@ -69,10 +71,35 @@ namespace EventStore.CommonDomain.Test
             {
                
                 //var events = connection.ReadEventStreamForward("$all", 0, int.MaxValue);
-                var events = connection.ReadAllEventsForward(ClientAPI.Position.Start, int.MaxValue);
+                var events = connection.ReadAllEventsForward(ClientAPI.Position.Start, 2);
+                var next = events.Position;
+
+                var ev2 = connection.ReadAllEventsForward(next, 2);
             }
             catch (Exception ex)
             { 
+            }
+        }
+
+
+        [TestMethod]
+        public void subscribe_to_all_events()
+        {
+            var connection = new EventStore.ClientAPI.EventStoreConnection(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113));
+
+            try
+            {
+
+                connection.SubscribeToAllStreamsAsync((ev, pos) => 
+                {
+                    
+                }, () => { });
+
+                
+                
+            }
+            catch (Exception ex)
+            {
             }
         }
     }
